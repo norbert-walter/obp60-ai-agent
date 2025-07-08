@@ -2,6 +2,7 @@ import streamlit as st
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
@@ -14,6 +15,12 @@ from bs4 import BeautifulSoup
 # --- UI: Streamlit Interface ---
 st.set_page_config(page_title="Technischer Berater", page_icon="🛠️")
 st.title("🛠️ Technischer Berater für Produktfragen")
+
+# --- Auswahl: Embedding-Modell ---
+embedding_option = st.selectbox(
+    "Welches Embedding-Modell soll verwendet werden?",
+    ["HuggingFace (lokal)", "OpenAI (API-Schlüssel nötig)"]
+)
 
 # --- Mehrere PDFs aus einem Ordner laden ---
 pdf_folder = "daten/"  # <-- Ersetze durch deinen Ordnerpfad
@@ -29,9 +36,8 @@ for pdf_path in pdf_files:
 
 # --- HTML-Webseiten einbinden ---
 urls = [
-    "https://obp60-v2-docu.readthedocs.io/de/latest/index.html",
-    "https://obp40-v1-docu.readthedocs.io/de/latest/index.html",
-    "https://open-boat-projects.org"
+    "https://deine-webseite.de/produkt-support",
+    "https://deine-webseite.de/faq"
     # Weitere URLs hier ergänzen
 ]
 
@@ -59,7 +65,15 @@ if not texts:
 st.write(f"✅ {len(texts)} Textabschnitte geladen.")
 
 # --- Embeddings + Vektor-Datenbank erstellen ---
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+if embedding_option == "OpenAI (API-Schlüssel nötig)":
+    if "OPENAI_API_KEY" not in st.secrets:
+        st.error("OPENAI_API_KEY nicht in secrets hinterlegt!")
+        st.stop()
+    openai_api_key = st.secrets["OPENAI_API_KEY"]
+    embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+else:
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
 db = FAISS.from_texts(texts, embeddings)
 retriever = db.as_retriever()
 
@@ -77,4 +91,5 @@ user_question = st.text_input("Was möchtest du wissen?")
 if user_question:
     response = qa_chain.run(user_question)
     st.write(response)
+
 
