@@ -6,3 +6,4 @@ faiss-cpu
 tiktoken
 requests
 beautifulsoup4
+sentence-transformers
