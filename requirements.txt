@@ -1,6 +1,6 @@
 streamlit
 PyPDF2
-langchain_community
+langchain-community
 openai
 faiss-cpu
 tiktoken

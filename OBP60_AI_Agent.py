@@ -1,8 +1,8 @@
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
@@ -11,7 +11,7 @@ import glob
 import requests
 from bs4 import BeautifulSoup
 
-# --- OpenAI API-Key aus secrets.toml laden ---
+# --- OpenAI API-Key aus Streamlit secrets laden ---
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 # --- UI: Streamlit Interface ---
@@ -26,13 +26,14 @@ raw_text = ""
 for pdf_path in pdf_files:
     reader = PdfReader(pdf_path)
     for page in reader.pages:
-        raw_text += page.extract_text()
+        text = page.extract_text()
+        if text:
+            raw_text += text + "\n"
 
 # --- HTML-Webseiten einbinden ---
 urls = [
-    #"https://obp60-v2-docu.readthedocs.io/de/latest/index.html",
-    #"https://obp40-v1-docu.readthedocs.io/de/latest/index.html",
-    #"https://open-boat-projects.org"
+    "https://deine-webseite.de/produkt-support",
+    "https://deine-webseite.de/faq"
     # Weitere URLs hier ergänzen
 ]
 
@@ -51,6 +52,13 @@ for url in urls:
 # --- Text aufteilen ---
 text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=200)
 texts = text_splitter.split_text(raw_text)
+
+# --- Absicherung: Kein Inhalt = Fehlermeldung ---
+if not texts:
+    st.error("Keine Inhalte gefunden! Bitte überprüfe PDF-Ordner oder Webseiten.")
+    st.stop()
+
+st.write(f"✅ {len(texts)} Textabschnitte geladen.")
 
 # --- Embeddings + Vektor-Datenbank erstellen ---
 embeddings = OpenAIEmbeddings()
