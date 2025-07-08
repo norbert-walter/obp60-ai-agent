@@ -11,12 +11,15 @@ import glob
 import requests
 from bs4 import BeautifulSoup
 
+# --- OpenAI API-Key aus secrets.toml laden ---
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+
 # --- UI: Streamlit Interface ---
 st.set_page_config(page_title="Technischer Berater", page_icon="🛠️")
 st.title("🛠️ Technischer Berater für Produktfragen")
 
-# --- PDFs laden ---
-pdf_folder = "daten/"  # <-- Ersetze durch deinen Ordnerpfad mit PDFs
+# --- Mehrere PDFs aus einem Ordner laden ---
+pdf_folder = "daten/"  # <-- Ersetze durch deinen Ordnerpfad
 pdf_files = glob.glob(os.path.join(pdf_folder, "*.pdf"))
 
 raw_text = ""
@@ -25,11 +28,12 @@ for pdf_path in pdf_files:
     for page in reader.pages:
         raw_text += page.extract_text()
 
-# --- Webseiten laden ---
+# --- HTML-Webseiten einbinden ---
 urls = [
-    "https://deine-webseite.de/produkt-support",
-    "https://deine-webseite.de/faq",
-    # Füge hier weitere URLs hinzu
+    "https://obp60-v2-docu.readthedocs.io/de/latest/index.html",
+    "https://obp40-v1-docu.readthedocs.io/de/latest/index.html",
+    "https://open-boat-projects.org"
+    # Weitere URLs hier ergänzen
 ]
 
 for url in urls:
