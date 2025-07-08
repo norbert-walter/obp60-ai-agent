@@ -1,7 +1,7 @@
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
@@ -10,9 +10,6 @@ import os
 import glob
 import requests
 from bs4 import BeautifulSoup
-
-# --- OpenAI API-Key aus Streamlit secrets laden ---
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 # --- UI: Streamlit Interface ---
 st.set_page_config(page_title="Technischer Berater", page_icon="🛠️")
@@ -32,8 +29,8 @@ for pdf_path in pdf_files:
 
 # --- HTML-Webseiten einbinden ---
 urls = [
-    "https://deine-webseite.de/produkt-support",
-    "https://deine-webseite.de/faq"
+    #"https://deine-webseite.de/produkt-support",
+    #"https://deine-webseite.de/faq"
     # Weitere URLs hier ergänzen
 ]
 
@@ -61,7 +58,7 @@ if not texts:
 st.write(f"✅ {len(texts)} Textabschnitte geladen.")
 
 # --- Embeddings + Vektor-Datenbank erstellen ---
-embeddings = OpenAIEmbeddings()
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 db = FAISS.from_texts(texts, embeddings)
 retriever = db.as_retriever()
 
@@ -79,3 +76,4 @@ user_question = st.text_input("Was möchtest du wissen?")
 if user_question:
     response = qa_chain.run(user_question)
     st.write(response)
+
