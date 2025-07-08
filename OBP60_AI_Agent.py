@@ -29,7 +29,7 @@ for pdf_path in pdf_files:
 
 # --- HTML-Webseiten einbinden ---
 urls = [
-    #"https://deine-webseite.de/produkt-support",
+    "https://obp60-v2-docu.readthedocs.io/de/latest/index.html",
     #"https://deine-webseite.de/faq"
     # Weitere URLs hier ergänzen
 ]
